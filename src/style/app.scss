@@ -1,0 +1,23 @@
+.gift-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.center-icon {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+}
+
+#root {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+body {
+  min-width: 300px;
+}

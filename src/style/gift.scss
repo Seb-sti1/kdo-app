@@ -1,0 +1,90 @@
+.gift {
+  border: #cbd0f3 solid 1px;
+  border-radius: 10px;
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  .header {
+    display: flex;
+
+    .name {
+      font-weight: bolder;
+    }
+
+    .price {
+      margin-left: auto;
+    }
+  }
+
+  .description {
+    text-align: justify;
+    width: 100%;
+    display: block;
+  }
+
+  .subdivisions {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    gap: 5px 1em;
+    justify-content: center;
+
+    span {
+      border: #cbd0f3 solid 1px;
+      border-radius: 10px;
+      padding: 5px;
+    }
+
+    .reserved {
+      color: #cacaca;
+    }
+
+    .reserved:hover {
+      border-color: #f9f9f9;
+    }
+  }
+
+  .footer {
+    display: flex;
+    flex-direction: row;
+
+    a {
+      margin-left: auto;
+    }
+  }
+
+  button {
+    padding: 5px;
+  }
+}
+
+.gift .subdivisions span:hover {
+  border: #7580f3 solid 1px;
+}
+
+.gift:hover {
+  border: #7580f3 solid 1px;
+}
+
+.gift.reserved {
+  color: #cacaca;
+  border: #cacaca dashed 1px;
+
+  button {
+    color: #cacaca;
+  }
+
+  button:hover {
+    border-color: #f9f9f9;
+  }
+
+  a {
+    color: #cacaca;
+  }
+
+  .gift.reserved:hover {
+    border: #cacaca dashed 1px;
+  }
+}
