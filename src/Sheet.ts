@@ -44,6 +44,8 @@ export interface FetchResponse {
     // there is a header too
 }
 
+
+// TODO only the name and the order are actually mandatory
 export interface GiftData {
     name: string,
     subdivisions?: string[],
@@ -72,7 +74,7 @@ export const initGoogleAPI = async (key: string): Promise<undefined> => {
     })
 }
 
-export const fetchRange = async (id: string, range: string): Promise<FetchResult> => {
+const fetchRange = async (id: string, range: string): Promise<FetchResult> => {
     return window.gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: id,
         range: range,
@@ -84,7 +86,7 @@ export const fetchRange = async (id: string, range: string): Promise<FetchResult
 export const getGifts = async (id: string): Promise<GiftData[]> => {
     return fetchRange(id, "gifts!A2:F1000").then((result: FetchResult) => {
         return result.values === undefined ? [] : result.values.map((row: string[]) => (
-            {
+            { // TODO prevent html injection
                 name: row[0],
                 subdivisions: row[1] === "" ? undefined : row[1].split(';'),
                 order: parseInt(row[2]),
