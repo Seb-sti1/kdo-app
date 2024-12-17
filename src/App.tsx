@@ -1,10 +1,14 @@
+import {sha512} from 'js-sha512';
+
 import {useEffect, useMemo, useState} from 'react'
 import {FetchError, getGifts, getReservations, GiftData, InitError, initGoogleAPI, ReservationData} from './Sheet.ts'
 import {useSearchParams} from "react-router-dom";
 import Gift from "./Gift.tsx";
-import {sha512} from 'js-sha512';
+import PseudoPopup from "./Pseudo.tsx";
 
 import './style/app.scss';
+
+// TODO add pipeline lint, build, deploy to GitHub Pages
 
 // array containing the valid keys and gsheet ids to ensure the app can't be used
 // in an illegitimate manner (html injection + 'legitimate' url)
@@ -21,6 +25,7 @@ function App() {
     const [gifts, setGifts] = useState<GiftData[]>([]);
     const [reservations, setReservations] = useState<ReservationData[]>([]);
 
+    // Get and validate the keys and sheet ids
     const [key, sheet] = useMemo(() => {
         const key = searchParams.get("k");
         const sheet = searchParams.get("s");
@@ -39,9 +44,6 @@ function App() {
             return [key, sheet];
         }
     }, [searchParams])
-
-    // const name = searchParams.get("n");
-    // TODO add name generation if not specified
 
     // TODO add explanation
 
@@ -81,6 +83,7 @@ function App() {
         };
     }, [sheet, key, state]);
 
+    const name = searchParams.get("n");
 
     // TODO add a footer
     switch (state) {
@@ -91,7 +94,26 @@ function App() {
         case 'valid':
             return (
                 <>
-                    <h1>Liste de Cadeau !</h1>
+                    <PseudoPopup
+                        name={name}
+                        existingNames={reservations
+                            .reduce((names: string[], res: ReservationData) => {
+                                res.buyers.forEach((n) => {
+                                    if (!names.includes(n) && n !== "") {
+                                        names.push(n)
+                                    }
+                                })
+                                return names;
+                            }, [])}
+                        apiKey={key}
+                        sheet={sheet}
+                    />
+                    <h1>Liste de cadeaux !</h1>
+                    <span className="name">Vous êtes identifié(e) en tant que
+                                <span>
+                            {name}
+                        </span>
+                    </span>
                     <div className="gift-list">
                         {gifts
                             .sort((a, b) => {

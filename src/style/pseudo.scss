@@ -1,0 +1,36 @@
+.modal {
+  width: 400px;
+  background-color: #ffffff;
+  border: 1px solid #e4e4e4;
+  padding: 30px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+
+  div {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    flex-wrap: wrap;
+
+    button {
+      min-width: 50px;
+    }
+  }
+}
+
+.popup-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal span:nth-of-type(1) {
+  margin-bottom: 10px;
+}
+
+.center {
+  text-align: center;
+}
+
+.bold {
+  font-weight: bold;
+}
