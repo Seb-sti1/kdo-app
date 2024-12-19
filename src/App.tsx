@@ -115,7 +115,7 @@ function App() {
                         sheet={sheet}
                     />
                     <h1>Liste de cadeaux !</h1>
-                    <span className="name">Vous êtes identifié(e) en tant que<span>{name}</span>.</span>
+                    <span className="identity">Vous êtes identifié(e) en tant que<span>{name}</span>.</span>
                     <div className="gift-list">
                         {gifts
                             .sort((a, b) => {
