@@ -45,14 +45,13 @@ export interface FetchResponse {
 }
 
 
-// TODO only the name and the order are actually mandatory
 export interface GiftData {
     name: string,
-    subdivisions?: string[],
-    order: number,
-    description: string,
-    link: string,
-    price: number,
+    subdivisions: string[] | null,
+    order: number | null,
+    description: string | null,
+    link: string | null,
+    price: number | null,
 }
 
 export interface ReservationData {
@@ -85,17 +84,22 @@ const fetchRange = async (id: string, range: string): Promise<FetchResult> => {
 
 export const getGifts = async (id: string): Promise<GiftData[]> => {
     return fetchRange(id, "gifts!A2:F1000").then((result: FetchResult) => {
-        return result.values === undefined ? [] : result.values.map((row: string[]) => (
-            { // TODO prevent html injection
-                name: row[0],
-                subdivisions: row[1] === "" ? undefined : row[1].split(';'),
-                order: parseInt(row[2]),
-                description: row[3],
-                link: row[4],
-                price: parseFloat(row[5])
-            }
-        ))
-    })
+            return result.values === undefined ? [] : result.values
+                .filter((row: string[]) => row.length > 0 && row[0].length > 0)
+                .map((row: string[]) => {
+                    return (
+                        {
+                            name: row[0],
+                            subdivisions: row.length < 2 || row[1] === "" ? null : row[1].split(';'),
+                            order: row.length < 3 || isNaN(parseInt(row[2])) ? null : parseInt(row[2]),
+                            description: row.length < 4 ? null : row[3],
+                            link: row.length < 5 ? null : row[4],
+                            price: row.length < 6 || isNaN(parseFloat(row[5])) ? null : parseFloat(row[5])
+                        }
+                    )
+                })
+        }
+    )
 }
 
 export const getReservations = async (id: string): Promise<ReservationData[]> => {
