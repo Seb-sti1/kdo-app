@@ -62,13 +62,20 @@ function App() {
                     setLoadingMessage("Chargement de la liste de cadeaux...")
                     return getGifts(sheet)
                 })
-                .then((data) => {
+                .then(async (giftsData) => {
                     setLoadingMessage("Chargement de la liste des réservations...")
-                    setGifts(data)
-                    return getReservations(sheet)
+                    return {giftsData, resData: await getReservations(sheet)}
                 })
-                .then((data) => {
-                    setReservations(data)
+                .then(({giftsData, resData}) => {
+                    if (resData.length < giftsData.length) {
+                        for (let i = resData.length; i < giftsData.length; i++) {
+                            resData.push({
+                                buyers: []
+                            })
+                        }
+                    }
+                    setGifts(giftsData)
+                    setReservations(resData)
                     setState('valid')
                 })
                 .catch((error: InitError | FetchError) => {
@@ -112,9 +119,11 @@ function App() {
                     <div className="gift-list">
                         {gifts
                             .sort((a, b) => {
-                                if (a.order > b.order)
+                                const aOrder = a.order === null ? 1000 : a.order;
+                                const bOrder = b.order === null ? 1000 : b.order;
+                                if (aOrder > bOrder)
                                     return 1
-                                else if (a.order < b.order)
+                                else if (aOrder < bOrder)
                                     return -1
                                 else
                                     return 0

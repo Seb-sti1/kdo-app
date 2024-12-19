@@ -25,9 +25,9 @@ const Gift: React.FC<GiftProps> = ({gift, reservation}) => {
         <div className={["gift", fullyReserved ? "reserved" : ""].join(' ')}>
             <div className="header">
                 <span className="name">{gift.name}</span>
-                <span className="price center-icon"><IoPricetagsOutline/> {gift.price} €</span>
+                {gift.price && (<span className="price center-icon"><IoPricetagsOutline/> {gift.price} €</span>)}
             </div>
-            <span className="description">{gift.description}</span>
+            {gift.description && (<span className="description">{gift.description}</span>)}
             {
                 gift.subdivisions && (
                     <div className="subdivisions">
@@ -55,7 +55,10 @@ const Gift: React.FC<GiftProps> = ({gift, reservation}) => {
                     <button className="center-icon" onClick={() => {
                         console.log("Book clicked");
                         // TODO: book gift
-                    }}>
+                    }}
+                    title={reservation.buyers.length > 0 ?
+                        `Déjà réservé par ${reservation.buyers[0]}` :
+                        'Cliquer pour réserver'}>
                         {
                             reservation.buyers.length > 0 ?
                                 (<>
@@ -69,9 +72,9 @@ const Gift: React.FC<GiftProps> = ({gift, reservation}) => {
                         }
                     </button>
                 }
-                <a className="center-icon" href={gift.link} target="_blank">
+                {gift.link && (<a className="center-icon" href={gift.link} target="_blank">
                     <FaExternalLinkAlt/> {gift.link}
-                </a>
+                </a>)}
             </div>
         </div>
     )
