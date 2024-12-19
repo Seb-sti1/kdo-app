@@ -7,8 +7,10 @@ import Gift from "./Gift.tsx";
 import PseudoPopup from "./Pseudo.tsx";
 
 import './style/app.scss';
+import Footer from "./Footer.tsx";
 
 // TODO add pipeline lint, build, deploy to GitHub Pages
+// TODO add explanation
 
 // array containing the valid keys and gsheet ids to ensure the app can't be used
 // in an illegitimate manner (html injection + 'legitimate' url)
@@ -44,8 +46,6 @@ function App() {
             return [key, sheet];
         }
     }, [searchParams])
-
-    // TODO add explanation
 
     // Load, init and check Google API
     useEffect(() => {
@@ -85,12 +85,11 @@ function App() {
 
     const name = searchParams.get("n");
 
-    // TODO add a footer
     switch (state) {
         case 'loading':
-            return <span>{loadingMessage}</span>
+            return <><span>{loadingMessage}</span><Footer/></>
         case 'error':
-            return <span>{errorMessage}</span>
+            return <><span>{errorMessage}</span><Footer/></>
         case 'valid':
             return (
                 <>
@@ -109,11 +108,7 @@ function App() {
                         sheet={sheet}
                     />
                     <h1>Liste de cadeaux !</h1>
-                    <span className="name">Vous êtes identifié(e) en tant que
-                                <span>
-                            {name}
-                        </span>
-                    </span>
+                    <span className="name">Vous êtes identifié(e) en tant que<span>{name}</span>.</span>
                     <div className="gift-list">
                         {gifts
                             .sort((a, b) => {
@@ -131,6 +126,7 @@ function App() {
                                           reservation={reservations[index]}/>
                                 ))}
                     </div>
+                    <Footer/>
                 </>
             )
 
