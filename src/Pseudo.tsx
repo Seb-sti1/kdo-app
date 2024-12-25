@@ -1,28 +1,10 @@
 import React from "react";
 import Popup from "reactjs-popup";
 import {useSearchParams} from "react-router-dom";
-
+import {generateUnique} from "./PseudoGeneration.ts"
 
 import './style/pseudo.scss';
 
-const animals: string[] = [
-    'Tapir',
-    'Éléphant',
-    'Crabe',
-    'Chat',
-    'Chien',
-]
-const adjectives: string[] = [
-    'Agile',
-    'Curieux',
-    'Créatif',
-    'Honnête',
-    'Ingénieux'
-]
-
-function newPseudo(): string {
-    return `${animals[Math.floor(Math.random() * animals.length)]} ${adjectives[Math.floor(Math.random() * animals.length)]}`
-}
 
 interface PseudoPopupProps {
     name: string | null,
@@ -30,7 +12,6 @@ interface PseudoPopupProps {
     apiKey: string | null,
     sheet: string | null,
 }
-
 
 const PseudoPopup: React.FC<PseudoPopupProps> = ({name, existingNames, apiKey, sheet}) => {
     const [_, setSearchParams] = useSearchParams();
@@ -66,19 +47,12 @@ const PseudoPopup: React.FC<PseudoPopupProps> = ({name, existingNames, apiKey, s
             </div>
             <span>Ou, si vous n'aviez pas de pseudo, générer s'en un :</span>
             <button onClick={() => {
-                if (apiKey !== null && sheet !== null) {
-                    let n: string | null = null;
-                    while (n === null) {
-                        n = newPseudo()
-                        if (existingNames.includes(n))
-                            n = null;
-                    }
+                if (apiKey !== null && sheet !== null)
                     setSearchParams({
                         k: apiKey,
                         s: sheet,
-                        n: newPseudo(),
+                        n: generateUnique(existingNames),
                     })
-                }
             }}>
                 Générer un pseudo
             </button>

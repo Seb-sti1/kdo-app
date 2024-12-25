@@ -8,9 +8,9 @@ import PseudoPopup from "./Pseudo.tsx";
 
 import './style/app.scss';
 import Footer from "./Footer.tsx";
+import Explanations from "./Explanations.tsx";
 
 // TODO add pipeline lint, build, deploy to GitHub Pages
-// TODO add explanation
 
 // array containing the valid keys and gsheet ids to ensure the app can't be used
 // in an illegitimate manner (html injection + 'legitimate' url)
@@ -114,13 +114,27 @@ function App() {
                         apiKey={key}
                         sheet={sheet}
                     />
+                    <Explanations
+                        name={name}
+                        existingNames={reservations
+                            .reduce((names: string[], res: ReservationData) => {
+                                res.buyers.forEach((n) => {
+                                    if (!names.includes(n) && n !== "") {
+                                        names.push(n)
+                                    }
+                                })
+                                return names;
+                            }, [])}
+                        apiKey={key}
+                        sheet={sheet}
+                    />
                     <h1>Liste de cadeaux !</h1>
                     <span className="identity">Vous êtes identifié(e) en tant que<span>{name}</span>.</span>
                     <div className="gift-list">
                         {gifts
                             .sort((a, b) => {
-                                const aOrder = a.order === null ? 1000 : a.order;
-                                const bOrder = b.order === null ? 1000 : b.order;
+                                const aOrder = a.order === null ? 1000000 : a.order;
+                                const bOrder = b.order === null ? 1000000 : b.order;
                                 if (aOrder > bOrder)
                                     return 1
                                 else if (aOrder < bOrder)
