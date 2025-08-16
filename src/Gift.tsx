@@ -6,7 +6,7 @@ import {IoIosCheckbox} from "react-icons/io";
 import {RiCheckboxBlankLine} from "react-icons/ri";
 import {GiftData} from "./Gist.ts";
 
-interface GiftProps {
+export interface GiftProps {
     gift: GiftData,
     name: string,
     bookCallback: (subdivisionIndex: number) => void

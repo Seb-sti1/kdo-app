@@ -7,16 +7,15 @@ import './style/pseudo.scss';
 
 
 interface PseudoPopupProps {
-    name: string | null,
     existingNames: string[],
     apiKey: string | null,
     gist: string | null,
 }
 
-const PseudoPopup: React.FC<PseudoPopupProps> = ({name, existingNames, apiKey, gist}) => {
+const PseudoPopup: React.FC<PseudoPopupProps> = ({ existingNames, apiKey, gist}) => {
     const [_, setSearchParams] = useSearchParams();
 
-    return (<Popup open={name === null}
+    return (<Popup open={true}
                    modal
                    nested
                    closeOnDocumentClick={false}
