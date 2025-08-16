@@ -28,9 +28,9 @@ export function generateUnique(existingNames: string[]): string {
     return n;
 }
 
-export function generateUrl(name: string, apiKey: string, sheet: string): string {
+export function generateUrl(name: string, apiKey: string, gist: string): string {
     const url = new URL(window.location.origin);
-    const searchParams = new URLSearchParams({k: apiKey, s: sheet, n: name});
+    const searchParams = new URLSearchParams({k: apiKey, g: gist, n: name});
     url.search = searchParams.toString();
     return url.toString();
 }

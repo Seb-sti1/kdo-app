@@ -1,33 +1,12 @@
 .explanations {
-  position: fixed;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-
-  div {
-    padding: 20px;
-    max-width: 450px;
-    text-align: left;
-    border: #cacaca dashed 1px;
-    border-radius: 10px 0 0 10px;
-    border-right: 0;
-
-    h2 {
-      margin: 20px 0 0;
-    }
-    h2:first-child {
-      margin: 0;
+  span {
+    span {
+      font-weight: bold;
     }
   }
 
   p {
-    margin: 0;
-  }
-
-  button {
-    padding: 5px;
+    text-align: justify;
+    margin: 20px 0 0;
   }
 }
