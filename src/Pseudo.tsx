@@ -10,10 +10,10 @@ interface PseudoPopupProps {
     name: string | null,
     existingNames: string[],
     apiKey: string | null,
-    sheet: string | null,
+    gist: string | null,
 }
 
-const PseudoPopup: React.FC<PseudoPopupProps> = ({name, existingNames, apiKey, sheet}) => {
+const PseudoPopup: React.FC<PseudoPopupProps> = ({name, existingNames, apiKey, gist}) => {
     const [_, setSearchParams] = useSearchParams();
 
     return (<Popup open={name === null}
@@ -34,10 +34,10 @@ const PseudoPopup: React.FC<PseudoPopupProps> = ({name, existingNames, apiKey, s
             <div>
                 {existingNames.map((name) => (
                     <button key={name} onClick={() => {
-                        if (apiKey !== null && sheet !== null)
+                        if (apiKey !== null && gist !== null)
                             setSearchParams({
                                 k: apiKey,
-                                s: sheet,
+                                g: gist,
                                 n: name,
                             })
                     }}>
@@ -47,10 +47,10 @@ const PseudoPopup: React.FC<PseudoPopupProps> = ({name, existingNames, apiKey, s
             </div>
             <span>Ou, si vous n'aviez pas de pseudo, générer s'en un :</span>
             <button onClick={() => {
-                if (apiKey !== null && sheet !== null)
+                if (apiKey !== null && gist !== null)
                     setSearchParams({
                         k: apiKey,
-                        s: sheet,
+                        g: gist,
                         n: generateUnique(existingNames),
                     })
             }}>

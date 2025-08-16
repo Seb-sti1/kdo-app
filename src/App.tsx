@@ -1,31 +1,22 @@
 import {sha512} from 'js-sha512';
 
 import {useEffect, useMemo, useState} from 'react'
-import {
-    FetchError,
-    getGifts,
-    getReservations,
-    GiftReservationData,
-    InitError,
-    initGoogleAPI,
-    ReservationData,
-    setReservation
-} from './Sheet.ts'
 import {useSearchParams} from "react-router-dom";
-import Gift from "./Gift.tsx";
+import {Gift} from "./Gift.tsx";
 import PseudoPopup from "./Pseudo.tsx";
 
 import './style/app.scss';
 import Footer from "./Footer.tsx";
 import Explanations from "./Explanations.tsx";
 import Popup from "reactjs-popup";
+import {bookGift, getGistContent, GiftData} from "./Gist.ts";
 
 // TODO add pipeline lint, build, deploy to GitHub Pages
 
-// array containing the valid keys and gsheet ids to ensure the app can't be used
+// array containing the valid api keys and gist ids to ensure the app can't be used
 // in an illegitimate manner (html injection + 'legitimate' url)
-const valid_key = ['d316914dff1d26b5d789a4783d0b1112733b2ee445c851b368c42718417b9d1c2559c183b82b2fd795cede7cc54e764ee1b8939b07cdb8f67accac8b86cb89ec']
-const valid_sheet = ['bb6d4c0cf819a0e24c9c7c431a54e6e68bdbc1a897e96b8cc1373a2a806c714363cc6ce5ebb18501c871c925538291969db06eb284a3358bbb5b8063b4c8a68d']
+const valid_key = ['0696065a8f896feecd17640bb4a56cd838e18f694d9bb6a6ac7e2765d4583ea09b60368a30c73ed7bec130cd6174a7a9fcfc7fd9f8b9b8b46d9267d546f5a922']
+const valid_gist = ['5078b05538dd67c6dc6458fa00dd7f708ce2f66755e17a2dae13802c951dcd06ba86c5385027d6b6c295bb5ea7d8602c6bd6be0dfa030ae203b6334be70a02ad']
 
 type State =
     "loading"
@@ -41,75 +32,55 @@ function App() {
     const [loadingMessage, setLoadingMessage] = useState<string>('Chargement...')
     const [errorMessage, setErrorMessage] = useState<string>('Une erreur est survenue...')
     const [state, setState] = useState<State>('loading')
-    const [giftsReservations, setGiftsReservations] = useState<GiftReservationData[]>([]);
+    const [giftsData, setGiftsData] = useState<GiftData[]>([]);
 
-    // Get and validate the keys and sheet ids
-    const [key, sheet] = useMemo(() => {
+    // Get and validate the keys and gist ids
+    const [key, gist] = useMemo(() => {
         const key = searchParams.get("k");
-        const sheet = searchParams.get("s");
+        const gist = searchParams.get("g");
 
-        if (sheet == null || key == null) {
+        if (gist == null || key == null) {
             setErrorMessage("Il nécessaire de spécifier des paramètres pour accèder à l'application.")
             setState('error')
             return [null, null];
-        } else if (!valid_key.includes(sha512(key)) || !valid_sheet.includes(sha512(sheet))) {
+        } else if (!valid_key.includes(sha512(key)) || !valid_gist.includes(sha512(gist))) {
             console.debug('key:', sha512(key))
-            console.debug('sheet:', sha512(sheet))
+            console.debug('gist:', sha512(gist))
             setErrorMessage("Les paramètres spécifiés ne sont pas autorisés.")
             setState('error')
             return [null, null];
         } else {
-            return [key, sheet];
+            return [key, gist];
         }
     }, [searchParams])
 
-    // Load, init and check Google API
     useEffect(() => {
-        if (state !== 'loading' || sheet == null || key == null)
+        if (state !== 'loading' || gist == null || key == null)
             return;
 
-        setLoadingMessage("Chargement de l'application...")
-        const script = document.createElement('script');
-        script.src = "https://apis.google.com/js/api.js";
-        script.async = true;
-        script.onload = async () => {
-            initGoogleAPI(key)
-                .then(() => {
-                    setLoadingMessage("Chargement de la liste de cadeaux...")
-                    return getGifts(sheet)
-                })
-                .then(async (giftsData) => {
-                    setLoadingMessage("Chargement de la liste des réservations...")
-                    return {giftsData, resData: await getReservations(sheet)}
-                })
-                .then(({giftsData, resData}) => {
-                    if (resData.length < giftsData.length) {
-                        for (let i = resData.length; i < giftsData.length; i++) {
-                            resData.push({
-                                index: i,
-                                buyers: []
-                            })
-                        }
+        setLoadingMessage("Chargement de la liste de cadeaux...")
+        getGistContent(key, gist)
+            .then((data) => {
+                if (data) {
+                    if (data.accessible) {
+                        setGiftsData(data.gifts)
+                        setState('valid')
+                    } else {
+                        setState('error')
+                        setErrorMessage('Le propriétaire de cette liste l\' rendu inaccesible pour le moment. Merci de revenir plus tard')
                     }
-                    setGiftsReservations(giftsData.map((gift, index) => {
-                        return {
-                            ...gift,
-                            buyers: index < resData.length ? resData[index].buyers : [],
-                        }
-                    }))
-                    setState('valid')
-                })
-                .catch((error: InitError | FetchError) => {
-                    console.error("Error while fetching data to Google Sheet:", error)
-                    setErrorMessage('Une erreur est survenue lors de la récupération des informations...')
+                } else {
+                    console.error("No data retrieved from Github")
+                    setErrorMessage('Une erreur inattendue est survenue lors de la récupération des informations...')
                     setState('error')
-                });
-        }
-        document.body.appendChild(script);
-        return () => {
-            document.body.removeChild(script);
-        };
-    }, [sheet, key, state]);
+                }
+            })
+            .catch((error: Error) => {
+                console.error("Error while fetching data to Github:", error)
+                setErrorMessage('Une erreur inattendue est survenue lors de la récupération des informations...')
+                setState('error')
+            });
+    }, [gist, key, state]);
 
     const name = searchParams.get("n");
 
@@ -127,36 +98,35 @@ function App() {
                 <>
                     <PseudoPopup
                         name={name}
-                        existingNames={giftsReservations
-                            .reduce((names: string[], res: ReservationData) => {
+                        existingNames={giftsData
+                            .reduce((names: string[], res) => {
                                 res.buyers.forEach((n) => {
-                                    if (!names.includes(n) && n !== "") {
+                                    if (n != null && !names.includes(n)) {
                                         names.push(n)
                                     }
                                 })
                                 return names;
                             }, [])}
                         apiKey={key}
-                        sheet={sheet}
-                    />
-                    <Explanations
-                        name={name}
-                        existingNames={giftsReservations
-                            .reduce((names: string[], res: ReservationData) => {
-                                res.buyers.forEach((n) => {
-                                    if (!names.includes(n) && n !== "") {
-                                        names.push(n)
-                                    }
-                                })
-                                return names;
-                            }, [])}
-                        apiKey={key}
-                        sheet={sheet}
+                        gist={gist}
                     />
                     <h1>Liste de cadeaux !</h1>
-                    <span className="identity">Vous êtes identifié(e) en tant que<span>{name}</span>.</span>
+                    <Explanations
+                        name={name!}
+                        existingNames={giftsData
+                            .reduce((names: string[], res) => {
+                                res.buyers.forEach((n) => {
+                                    if (n != null && !names.includes(n)) {
+                                        names.push(n)
+                                    }
+                                })
+                                return names;
+                            }, [])}
+                        apiKey={key!}
+                        gist={gist!}
+                    />
                     <div className="gift-list">
-                        {giftsReservations
+                        {giftsData
                             .sort((a, b) => {
                                 const aOrder = a.order === null ? 1000000 : a.order;
                                 const bOrder = b.order === null ? 1000000 : b.order;
@@ -169,27 +139,37 @@ function App() {
                             })
                             .map((gift) =>
                                 (
-                                    <Gift key={gift.name}
+                                    <Gift key={gift.uid}
+                                          name={name!}
                                           gift={gift}
                                           bookCallback={(subdivisionIndex) => {
-                                              console.log(`${gift.index} ${subdivisionIndex}`)
+                                              console.log(`${gift.uid} ${subdivisionIndex}`)
                                               if (gift.buyers.length > subdivisionIndex) {
-                                                  if (gift.buyers[subdivisionIndex] != "" && gift.buyers[subdivisionIndex] != name) {
+                                                  if (gift.buyers[subdivisionIndex] != null && gift.buyers[subdivisionIndex] != name) {
                                                       setErrorMessage(gift.buyers[subdivisionIndex])
                                                       setState('alreadyBooked')
                                                   } else {
                                                       setState("waitingForAcknowledgement")
-                                                      if (sheet == null || name == null) {
-                                                          // TODO trigger reload
+                                                      if (key == null || gist == null || name == null) {
+                                                          console.error("No key, gist or name when trying to submit booking request")
+                                                          setErrorMessage("Il nécessaire de spécifier des paramètres pour accèder à l'application.")
+                                                          setState('error')
                                                           return
                                                       }
-                                                      setReservation(sheet, gift, name, subdivisionIndex).then(r => {
-                                                          if (r) {
-                                                              setState("changesSaved")
-                                                          } else {
-                                                              setState("dbIsolationError")
-                                                          }
-                                                      })
+                                                      bookGift(key, gist, name, gift, subdivisionIndex)
+                                                          .then(r => {
+                                                              if (r == false) {
+                                                                  setState("dbIsolationError")
+                                                              } else {
+                                                                  setGiftsData(r.gifts)
+                                                                  setState("changesSaved")
+                                                              }
+                                                          })
+                                                          .catch((e: Error) => {
+                                                              console.error("Error while updating:", e)
+                                                              setErrorMessage("Une erreur inattendue est survenue lors de la mise à jour.")
+                                                              setState('error')
+                                                          })
                                                   }
                                               }
                                           }}
@@ -230,7 +210,7 @@ function App() {
                             <span className="bold center">Modification enregistrée</span>
                             <p>La (dé)réservation a été enregistrée !</p>
                             <button onClick={() => {
-                                setState("loading") // TODO check if this work
+                                setState("valid")
                             }}>Ok
                             </button>
                         </div>
@@ -245,7 +225,7 @@ function App() {
                             <p>Il semblerait que la base de donnée ait été modifiée par quelqu'un d'autre... Merci de
                                 réessayer.</p>
                             <button onClick={() => {
-                                setState("loading") // TODO check if this work
+                                setState("loading")
                             }}>Ok
                             </button>
                         </div>

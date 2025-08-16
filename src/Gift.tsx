@@ -1,23 +1,24 @@
-import {GiftReservationData} from "./Sheet.ts";
 import React, {useMemo} from "react";
 import './style/gift.scss'
 import {IoPricetagsOutline} from "react-icons/io5";
 import {FaExternalLinkAlt} from "react-icons/fa";
 import {IoIosCheckbox} from "react-icons/io";
 import {RiCheckboxBlankLine} from "react-icons/ri";
+import {GiftData} from "./Gist.ts";
 
 interface GiftProps {
-    gift: GiftReservationData,
+    gift: GiftData,
+    name: string,
     bookCallback: (subdivisionIndex: number) => void
 }
 
-const Gift: React.FC<GiftProps> = ({gift, bookCallback}) => {
+export const Gift: React.FC<GiftProps> = ({gift, name, bookCallback}) => {
     const fullyReserved = useMemo(() => {
         if (gift.subdivisions) {
             return gift.buyers.length == gift.subdivisions.length
-                && gift.buyers.every(buyer => buyer.length > 0)
+                && gift.buyers.every(buyer => buyer != null)
         } else {
-            return gift.buyers.length > 0;
+            return gift.buyers[0] != null;
         }
     }, [gift]);
 
@@ -29,20 +30,20 @@ const Gift: React.FC<GiftProps> = ({gift, bookCallback}) => {
             </div>
             {gift.description && (<span className="description">{gift.description}</span>)}
             {
-                gift.subdivisions && (
+                gift.subdivisions != null && (
                     <div className="subdivisions">
                         {gift.subdivisions.map((subdivision, index) =>
                             (<button
                                 className={["center-icon",
-                                    gift.buyers[index].length > 0 ? "reserved" : ""].join(' ')}
-                                title={gift.buyers[index].length > 0 ?
+                                    gift.buyers[index] == name ? "golden" : gift.buyers[index] != null ? "reserved" : ""].join(' ')}
+                                title={gift.buyers[index] != null ?
                                     `Déjà réservé par ${gift.buyers[index]}` :
                                     'Cliquer pour réserver'}
                                 key={subdivision} onClick={() => {
                                 bookCallback(index);
                             }}>
                                 {subdivision}
-                                {gift.buyers[index].length > 0 ? <IoIosCheckbox/> : <RiCheckboxBlankLine/>}
+                                {gift.buyers[index] != null ? <IoIosCheckbox/> : <RiCheckboxBlankLine/>}
                             </button>)
                         )}
                     </div>
@@ -50,15 +51,15 @@ const Gift: React.FC<GiftProps> = ({gift, bookCallback}) => {
             }
             <div className="footer">
                 {
-                    !gift.subdivisions &&
+                    gift.subdivisions == null &&
                     <button className="center-icon" onClick={() => {
                         bookCallback(0);
                     }}
-                            title={gift.buyers.length > 0 ?
+                            title={gift.buyers[0] != null ?
                                 `Déjà réservé par ${gift.buyers[0]}` :
                                 'Cliquer pour réserver'}>
                         {
-                            gift.buyers.length > 0 ?
+                            gift.buyers[0] != null ?
                                 (<>
                                     {`Déjà réservé par ${gift.buyers[0]}`}
                                     <IoIosCheckbox/>
@@ -77,5 +78,3 @@ const Gift: React.FC<GiftProps> = ({gift, bookCallback}) => {
         </div>
     )
 }
-
-export default Gift;
