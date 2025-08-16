@@ -1,4 +1,5 @@
-import {FetchResponse} from "./Sheet.ts";
+import {FetchResponse, ValueInputOption} from "./Sheet.ts";
+
 
 declare global {
     interface Window {
@@ -9,6 +10,12 @@ declare global {
                     spreadsheets: {
                         values: {
                             get(param: { spreadsheetId: string; range: string }): Promise<FetchResponse>;
+                            update(param: {
+                                spreadsheetId: string;
+                                range: string,
+                                valueInputOption: ValueInputOption,
+                                resource: string[]
+                            }): Promise<FetchResponse>;
                         };
                     };
                 };
