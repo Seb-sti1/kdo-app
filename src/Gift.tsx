@@ -1,4 +1,4 @@
-import {GiftData, ReservationData} from "./Sheet.ts";
+import {GiftReservationData} from "./Sheet.ts";
 import React, {useMemo} from "react";
 import './style/gift.scss'
 import {IoPricetagsOutline} from "react-icons/io5";
@@ -7,19 +7,19 @@ import {IoIosCheckbox} from "react-icons/io";
 import {RiCheckboxBlankLine} from "react-icons/ri";
 
 interface GiftProps {
-    gift: GiftData,
-    reservation: ReservationData,
+    gift: GiftReservationData,
+    bookCallback: (subdivisionIndex: number) => void
 }
 
-const Gift: React.FC<GiftProps> = ({gift, reservation}) => {
+const Gift: React.FC<GiftProps> = ({gift, bookCallback}) => {
     const fullyReserved = useMemo(() => {
         if (gift.subdivisions) {
-            return reservation.buyers.length == gift.subdivisions.length
-                && reservation.buyers.every(buyer => buyer.length > 0)
+            return gift.buyers.length == gift.subdivisions.length
+                && gift.buyers.every(buyer => buyer.length > 0)
         } else {
-            return reservation.buyers.length > 0;
+            return gift.buyers.length > 0;
         }
-    }, [gift, reservation]);
+    }, [gift]);
 
     return (
         <div className={["gift", fullyReserved ? "reserved" : ""].join(' ')}>
@@ -34,16 +34,15 @@ const Gift: React.FC<GiftProps> = ({gift, reservation}) => {
                         {gift.subdivisions.map((subdivision, index) =>
                             (<button
                                 className={["center-icon",
-                                    reservation.buyers[index].length > 0 ? "reserved" : ""].join(' ')}
-                                title={reservation.buyers[index].length > 0 ?
-                                    `Déjà réservé par ${reservation.buyers[index]}` :
+                                    gift.buyers[index].length > 0 ? "reserved" : ""].join(' ')}
+                                title={gift.buyers[index].length > 0 ?
+                                    `Déjà réservé par ${gift.buyers[index]}` :
                                     'Cliquer pour réserver'}
                                 key={subdivision} onClick={() => {
-                                console.log("Book clicked");
-                                // TODO: book gift
+                                bookCallback(index);
                             }}>
                                 {subdivision}
-                                {reservation.buyers[index].length > 0 ? <IoIosCheckbox/> : <RiCheckboxBlankLine/>}
+                                {gift.buyers[index].length > 0 ? <IoIosCheckbox/> : <RiCheckboxBlankLine/>}
                             </button>)
                         )}
                     </div>
@@ -53,16 +52,15 @@ const Gift: React.FC<GiftProps> = ({gift, reservation}) => {
                 {
                     !gift.subdivisions &&
                     <button className="center-icon" onClick={() => {
-                        console.log("Book clicked");
-                        // TODO: book gift
+                        bookCallback(0);
                     }}
-                    title={reservation.buyers.length > 0 ?
-                        `Déjà réservé par ${reservation.buyers[0]}` :
-                        'Cliquer pour réserver'}>
+                            title={gift.buyers.length > 0 ?
+                                `Déjà réservé par ${gift.buyers[0]}` :
+                                'Cliquer pour réserver'}>
                         {
-                            reservation.buyers.length > 0 ?
+                            gift.buyers.length > 0 ?
                                 (<>
-                                    {`Déjà réservé par ${reservation.buyers[0]}`}
+                                    {`Déjà réservé par ${gift.buyers[0]}`}
                                     <IoIosCheckbox/>
                                 </>)
                                 : <>

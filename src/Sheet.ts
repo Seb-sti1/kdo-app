@@ -1,3 +1,5 @@
+// TODO move to gapi.d.ts
+
 export interface InitError {
     error: {
         code: number,
@@ -46,6 +48,7 @@ export interface FetchResponse {
 
 
 export interface GiftData {
+    index: number,
     name: string,
     subdivisions: string[] | null,
     order: number | null,
@@ -55,8 +58,15 @@ export interface GiftData {
 }
 
 export interface ReservationData {
+    index: number,
     buyers: string[],
 }
+
+export interface GiftReservationData extends GiftData {
+    buyers: string[],
+}
+
+export type ValueInputOption = "RAW" | "USER_ENTERED"
 
 export const initGoogleAPI = async (key: string): Promise<undefined> => {
     return new Promise((resolve, reject) => {
@@ -86,9 +96,10 @@ export const getGifts = async (id: string): Promise<GiftData[]> => {
     return fetchRange(id, "gifts!A2:F1000").then((result: FetchResult) => {
             return result.values === undefined ? [] : result.values
                 .filter((row: string[]) => row.length > 0 && row[0].length > 0)
-                .map((row: string[]) => {
+                .map((row: string[], index) => {
                     return (
                         {
+                            index: index,
                             name: row[0],
                             subdivisions: row.length < 2 || row[1] === "" ? null : row[1].split(';'),
                             order: row.length < 3 || isNaN(parseInt(row[2])) ? null : parseInt(row[2]),
@@ -104,10 +115,40 @@ export const getGifts = async (id: string): Promise<GiftData[]> => {
 
 export const getReservations = async (id: string): Promise<ReservationData[]> => {
     return fetchRange(id, "reservations!A1:A1000").then((result: FetchResult) => {
-        return result.values === undefined ? [] : result.values.map((row: string[]) => (
+        return result.values === undefined ? [] : result.values.map((row: string[], index) => (
             {
+                index: index,
                 buyers: row.length > 0 ? row[0].split(';') : []
             }
         ))
     })
+}
+
+export const setReservation = async (id: string,
+                                     gift: GiftReservationData,
+                                     buyer: string, subdivisionIndex: number): Promise<boolean> => {
+    const range = `reservations!A${gift.index + 1}:A${gift.index + 1}`;
+    const currentValue = (await getReservations(id))[gift.index].buyers[subdivisionIndex];
+    if (currentValue != gift.buyers[subdivisionIndex]) {
+        return false;
+    } else {
+        const buyers = gift.buyers;
+        buyers[subdivisionIndex] = buyers[subdivisionIndex] == '' ? buyer : '';
+        return window.gapi.client.sheets.spreadsheets.values.update({
+            spreadsheetId: id,
+            range: range,
+            valueInputOption: "RAW",
+            resource: [buyers.join(";")]
+        }).then((_response: FetchResponse) => {
+            console.log(_response);
+
+            return true;
+        }).catch(error => {
+            console.log(error);
+            return false;
+        })
+
+    }
+
+
 }
