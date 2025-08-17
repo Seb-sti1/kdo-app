@@ -12,6 +12,7 @@ export interface GiftData {
 export interface GistContent {
     gifts: GiftData[],
     accessible: boolean,
+    gistVersion: number,
 }
 
 
@@ -65,7 +66,7 @@ function rawGistToGistContent(raw: GistRaw): GistContent {
         throw new Error("Can't find kdo.json")
     const content = rawGist.files['kdo.json'].content
     if (content == "{}")
-        return {accessible: true, gifts: []}
+        return {accessible: true, gifts: [], gistVersion: 1}
     return JSON.parse(content);
 }
 
@@ -83,4 +84,35 @@ export async function bookGift(token: string, gistId: string, buyer: string, gif
 
     currentContent.gifts[giftIndex].buyers[subdivisionIndex] = currentContent.gifts[giftIndex].buyers[subdivisionIndex] == null ? buyer : null;
     return rawGistToGistContent(await updateRawGist(token, gistId, currentContent));
+}
+
+export async function deleteGift(token: string, gistId: string, giftsData: GiftData[], uid: string): Promise<GistContent> {
+    const giftIndex = giftsData?.findIndex((g) => g.uid === uid)
+    if (giftIndex < 0) throw new Error("Can't find the gift to edit");
+    giftsData.splice(giftIndex, 1)
+    return rawGistToGistContent(await updateRawGist(token, gistId, {
+        gifts: giftsData,
+        accessible: true,
+        gistVersion: 1
+    }));
+}
+
+export async function createOrEdit(token: string, gistId: string, giftsData: GiftData[], gift: GiftData): Promise<false | GistContent> {
+    const giftIndex = giftsData?.findIndex((g) => g.uid === gift.uid)
+    if (giftIndex < 0) {
+        return rawGistToGistContent(await updateRawGist(token, gistId, {
+            gifts: [...giftsData, gift],
+            accessible: true,
+            gistVersion: 1
+        }));
+    } else {
+        const currentContent = (await getGistContent(token, gistId)).gifts;
+        if (JSON.stringify(currentContent[giftIndex].buyers) !== JSON.stringify(giftsData[giftIndex].buyers)) return false
+        giftsData.splice(giftIndex, 1)
+        return rawGistToGistContent(await updateRawGist(token, gistId, {
+            gifts: [...giftsData, gift],
+            accessible: true,
+            gistVersion: 1
+        }));
+    }
 }

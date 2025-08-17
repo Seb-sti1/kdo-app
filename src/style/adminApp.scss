@@ -1,0 +1,28 @@
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  input, textarea {
+    width: 170px;
+    height: 20px;
+  }
+
+  #subdivisionsContainer {
+    input {
+      width: 100px;
+    }
+  }
+
+  label {
+    display: flex;
+
+    input {
+      margin-left: auto;
+    }
+
+    textarea {
+      margin-left: auto;
+    }
+  }
+}
