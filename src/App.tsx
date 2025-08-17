@@ -7,10 +7,11 @@ import PseudoPopup from "./Pseudo.tsx";
 import './style/app.scss';
 import Footer from "./Footer.tsx";
 import Explanations from "./Explanations.tsx";
-import {bookGift, getGistContent, GiftData} from "./Gist.ts";
+import {bookGift, createOrEdit, deleteGift, getGistContent, GiftData} from "./Gist.ts";
 import {UserApp} from "./UserApp.tsx";
+import {AdminApp} from "./AdminApp.tsx";
 
-// TODO add pipeline lint, build, deploy to GitHub Pages
+// TODO update readme
 
 // array containing the valid api keys and gist ids to ensure the app can't be used
 // in an illegitimate manner (html injection + 'legitimate' url)
@@ -49,7 +50,7 @@ function App() {
                     if (data.accessible) {
                         setGiftsData(data.gifts)
                     } else {
-                        setErrorMessage('Le propriétaire de cette liste l\'a rendu inaccesible pour le moment. Merci de revenir plus tard')
+                        setErrorMessage('Le propriétaire de cette liste l\'a rendu inaccessible pour le moment. Merci de revenir plus tard.')
                     }
                 } else {
                     console.error("No data retrieved from Github")
@@ -116,6 +117,37 @@ function App() {
                             return null
                         })
                 }}
+            />)}
+            {name == "admin" && (<AdminApp giftsData={giftsData}
+                                           deleteCallback={async (uid) => {
+                                               return deleteGift(key, gist, giftsData, uid)
+                                                   .then(r => {
+                                                       setGiftsData(r.gifts)
+                                                       return null
+                                                   })
+                                                   .catch((e: Error) => {
+                                                       console.error("Error while updating:", e)
+                                                       setErrorMessage("Une erreur inattendue est survenue lors de la mise à jour.")
+                                                       return null
+                                                   })
+                                           }}
+                                           createOrEditCallback={async (gift) => {
+                                               return createOrEdit(key, gist, giftsData, gift)
+                                                   .then(r => {
+                                                       if (r == false) {
+                                                           return "dbIsolationError"
+                                                       } else {
+                                                           setGiftsData(r.gifts)
+                                                           return null
+                                                       }
+                                                   })
+                                                   .catch((e: Error) => {
+                                                       console.error("Error while updating:", e)
+                                                       setErrorMessage("Une erreur inattendue est survenue lors de la mise à jour.")
+                                                       return null
+                                                   })
+
+                                           }}
             />)}
             <Footer/>
         </>
